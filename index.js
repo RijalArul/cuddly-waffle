@@ -10,10 +10,10 @@ app.use(express.json())
 const port = 3000
 
 const routes = require('./routes/index')
-const job = require('./middlewares/cron')
+const generateEmail = require('./middlewares/cron')
 app.use(routes)
 
-job.start()
+generateEmail()
 
 app.listen(port, () => {
   console.log(`Listening On Port ${port}`)

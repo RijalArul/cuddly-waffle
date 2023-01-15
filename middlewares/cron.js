@@ -2,6 +2,8 @@ var cron = require('node-cron')
 const { User } = require('../models')
 const { Op } = require('sequelize')
 const nodemailer = require('nodemailer')
+const { default: axios } = require('axios')
+const { job } = require('cron')
 
 function formatDate (date) {
   var d = new Date(date),
@@ -27,38 +29,41 @@ async function getUser () {
   return user
 }
 
-const job = cron.schedule(
-  '0 9 * * *',
-  async function () {
-    const user = await getUser()
+async function generateEmail () {
+  const users = await getUser()
 
-    if (user.length >= 1) {
-      for (let i = 0; i < user.length; i++) {
-        const transporter = nodemailer.createTransport({
-          host: 'smtp.ethereal.email',
-          port: 587,
-          auth: {
-            user: process.env.ETHEREAL_EMAIL,
-            pass: process.env.ETHEREAL_PASS
+  if (users.length >= 1) {
+    for (let i = 0; i < users.length; i++) {
+      const job = cron.schedule(
+        '52 22 * * *',
+        async function fn () {
+          try {
+            const resp = await axios({
+              method: 'POST',
+              url: 'https://email-service.digitalenvision.com.au/send-email',
+              data: {
+                email: 'fakhrulmrijal.hacktiv8@gmail.com',
+                message: `Hey, ${
+                  users[i].first_name + ' ' + users[i].last_name
+                } it’s your birthday`
+              }
+            })
+          } catch (err) {
+            if (err.response.status == 'Timeout') {
+              setTimeout(() => {
+                fn()
+              }, 1000 * 3600 * 24)
+            }
           }
-        })
-
-        let info = await transporter.sendMail({
-          from: process.env.ETHEREAL_EMAIL,
-          to: process.env.TO_EMAIL,
-          subject: 'Happy Birthday!',
-          text: `Happy bithday! ${user[i].first_name} ${user[i].last_name}`,
-          html: `<b>Happy bithday! ${user[i].first_name} ${user[i].last_name}</b>`
-        })
-        console.log('Message sent: %s', info.messageId)
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
-      }
+        },
+        {
+          scheduled: true,
+          timezone: users[i].location
+        }
+      )
+      job.start()
     }
-  },
-  {
-    scheduled: true,
-    timezone: 'Asia/Jakarta'
   }
-)
+}
 
-module.exports = job
+module.exports = generateEmail
