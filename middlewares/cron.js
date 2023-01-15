@@ -33,7 +33,7 @@ async function generateEmail () {
   if (users.length >= 1) {
     for (let i = 0; i < users.length; i++) {
       const job = cron.schedule(
-        '52 22 * * *',
+        '0 9 * * *',
         async function fn () {
           try {
             const resp = await axios({
