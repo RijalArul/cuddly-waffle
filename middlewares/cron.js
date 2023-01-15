@@ -1,9 +1,7 @@
 var cron = require('node-cron')
 const { User } = require('../models')
 const { Op } = require('sequelize')
-const nodemailer = require('nodemailer')
 const { default: axios } = require('axios')
-const { job } = require('cron')
 
 function formatDate (date) {
   var d = new Date(date),

@@ -3,18 +3,20 @@ const cors = require('cors')
 const app = express()
 
 require('dotenv').config()
+
+// const PORT = 3000
 app.use(cors())
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 
-const port = 3000
-
-const routes = require('./routes/index')
+const users = require('./routes/user')
 const generateEmail = require('./middlewares/cron')
-app.use(routes)
+app.use(users)
 
 generateEmail()
 
-app.listen(port, () => {
-  console.log(`Listening On Port ${port}`)
-})
+module.exports = app
+
+// app.listen(PORT, () => {
+//   console.log(`App listening on port ${PORT}`)
+// })
